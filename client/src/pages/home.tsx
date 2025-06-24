@@ -77,7 +77,7 @@ export default function Home() {
             </div>
 
             <ShabbatTimesDisplay locations={shabbatData.locations} />
-            <SummaryCard summary={shabbatData.summary} />
+            <SummaryCard summary={shabbatData.summary} homeTimezone={shabbatData.locations[0]?.timezone || 'Home Time'} />
           </>
         )}
 

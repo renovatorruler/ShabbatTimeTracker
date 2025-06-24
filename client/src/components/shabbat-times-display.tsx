@@ -76,7 +76,7 @@ export function ShabbatTimesDisplay({ locations }: ShabbatTimesDisplayProps) {
                 </div>
                 <h4 className="font-semibold text-text-primary mb-2">Shabbat Starts</h4>
                 <p className="text-2xl font-bold text-text-primary">{location.shabbatStart}</p>
-                <p className="text-sm text-text-secondary">Friday, Local Time</p>
+                <p className="text-sm text-text-secondary">Friday, {location.timezone}</p>
               </div>
               
               {/* Shabbat End */}
@@ -86,7 +86,7 @@ export function ShabbatTimesDisplay({ locations }: ShabbatTimesDisplayProps) {
                 </div>
                 <h4 className="font-semibold text-text-primary mb-2">Shabbat Ends</h4>
                 <p className="text-2xl font-bold text-text-primary">{location.shabbatEnd}</p>
-                <p className="text-sm text-text-secondary">Saturday, Local Time</p>
+                <p className="text-sm text-text-secondary">Saturday, {location.timezone}</p>
               </div>
             </div>
             
@@ -95,7 +95,7 @@ export function ShabbatTimesDisplay({ locations }: ShabbatTimesDisplayProps) {
               <div className="bg-gray-50 rounded-lg p-4">
                 <h5 className="font-medium text-text-primary mb-3 flex items-center">
                   <Clock className="mr-2 text-warning h-4 w-4" />
-                  In Your Time Zone
+                  In Your Time Zone ({locations[0]?.timezone || 'Home Time'})
                 </h5>
                 <div className="mb-3 text-sm font-medium text-text-primary">
                   {new Date(location.date).toLocaleDateString('en-US', { 
