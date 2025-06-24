@@ -598,6 +598,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           latestEndTime: latestEnd.homeTime,
           earliestStartInHomeTime: `${earliestStartInHome.homeTime} - ${fridayDate}`,
           latestEndInHomeTime: `${latestEndInHome.homeTime} - ${saturdayDateStr}`,
+          earliestStartLocation: earliestStartInHome.location,
+          latestEndLocation: latestEndInHome.location,
         },
       };
       

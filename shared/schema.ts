@@ -40,6 +40,8 @@ export const shabbatResponseSchema = z.object({
     latestEndTime: z.string(),
     earliestStartInHomeTime: z.string(),
     latestEndInHomeTime: z.string(),
+    earliestStartLocation: z.string(),
+    latestEndLocation: z.string(),
   }),
 });
 

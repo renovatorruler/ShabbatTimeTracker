@@ -9,10 +9,13 @@ interface SummaryCardProps {
     latestEndTime: string;
     earliestStartInHomeTime: string;
     latestEndInHomeTime: string;
+    earliestStartLocation: string;
+    latestEndLocation: string;
   };
+  homeTimezone: string;
 }
 
-export function SummaryCard({ summary }: SummaryCardProps) {
+export function SummaryCard({ summary, homeTimezone }: SummaryCardProps) {
   return (
     <Card className="bg-gradient-to-r from-primary to-secondary text-white mt-8">
       <CardContent className="p-6">
@@ -23,13 +26,15 @@ export function SummaryCard({ summary }: SummaryCardProps) {
         <div className="bg-white bg-opacity-10 rounded-lg p-4">
           <div className="grid md:grid-cols-2 gap-6 mb-4">
             <div>
-              <p className="text-blue-100 text-sm mb-2">Earliest Shabbat Start (Your Time):</p>
+              <p className="text-blue-100 text-sm mb-2">Earliest Shabbat Start ({homeTimezone}):</p>
               <p className="font-semibold text-lg">{summary.earliestStartInHomeTime}</p>
+              <p className="text-xs text-blue-200 mt-1">From: {summary.earliestStartLocation}</p>
             </div>
             
             <div>
-              <p className="text-blue-100 text-sm mb-2">Latest Shabbat End (Your Time):</p>
+              <p className="text-blue-100 text-sm mb-2">Latest Shabbat End ({homeTimezone}):</p>
               <p className="font-semibold text-lg">{summary.latestEndInHomeTime}</p>
+              <p className="text-xs text-blue-200 mt-1">From: {summary.latestEndLocation}</p>
             </div>
           </div>
           
