@@ -7,7 +7,7 @@ import { Star } from "lucide-react";
 import type { ShabbatResponse, LocationInput } from "@shared/schema";
 
 export default function Home() {
-  const [locationData, setLocationData] = useState<LocationInput | null>(null);
+  const [locationData, setLocationData] = useState<{ homeLocation: string; locations: string[] } | null>(null);
 
   const { data: shabbatData, isLoading, error } = useQuery<ShabbatResponse>({
     queryKey: ["/api/shabbat-times", locationData],
@@ -30,7 +30,7 @@ export default function Home() {
     },
   });
 
-  const handleFormSubmit = (data: LocationInput) => {
+  const handleFormSubmit = (data: { homeLocation: string; locations: string[] }) => {
     setLocationData(data);
   };
 

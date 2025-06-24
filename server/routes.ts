@@ -1,6 +1,6 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
-import { locationInputSchema } from "@shared/schema";
+import { locationInputSchema, legacyLocationInputSchema } from "@shared/schema";
 import { z } from "zod";
 
 interface HebcalEvent {
@@ -384,13 +384,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/shabbat-times", async (req, res) => {
     try {
-      const validatedInput = locationInputSchema.parse(req.body);
+      // Support both new and legacy formats
+      let locations: string[];
+      let validatedInput: any;
       
-      const locations = [
-        validatedInput.homeLocation,
-        validatedInput.secondaryLocation,
-        validatedInput.tertiaryLocation,
-      ].filter(Boolean) as string[];
+      if (req.body.locations) {
+        // New format
+        validatedInput = locationInputSchema.parse(req.body);
+        locations = [validatedInput.homeLocation, ...validatedInput.locations];
+      } else {
+        // Legacy format
+        const legacyInput = legacyLocationInputSchema.parse(req.body);
+        locations = [
+          legacyInput.homeLocation,
+          legacyInput.secondaryLocation,
+          legacyInput.tertiaryLocation,
+        ].filter(Boolean) as string[];
+        validatedInput = { homeLocation: legacyInput.homeLocation };
+      }
       
       console.log('Processing locations:', locations);
       
@@ -447,9 +458,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
         homeTime: location.shabbatEndInHomeTime,
       }));
       
-      // For simplicity, use the home location as reference for earliest/latest
-      const earliestStart = allStartTimes[0]; // Home location
-      const latestEnd = allEndTimes[0]; // Home location
+      // Convert times to Date objects for proper comparison across timezones
+      const parseTimeWithTimezone = (timeStr: string, dateStr: string, timezone: string): Date => {
+        const match = timeStr.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+        if (!match) return new Date();
+        
+        let hours = parseInt(match[1]);
+        const minutes = parseInt(match[2]);
+        const meridiem = match[3].toUpperCase();
+        
+        if (meridiem === 'PM' && hours !== 12) hours += 12;
+        if (meridiem === 'AM' && hours === 12) hours = 0;
+        
+        // Create date in UTC and adjust for timezone offset
+        const baseDate = new Date(dateStr);
+        baseDate.setUTCHours(hours, minutes, 0, 0);
+        
+        // Apply timezone offset (simplified)
+        const offsetMap: { [key: string]: number } = {
+          'America/Puerto_Rico': -4,
+          'Europe/Lisbon': 1,
+          'Asia/Kolkata': 5.5,
+        };
+        
+        const offset = offsetMap[timezone] || 0;
+        baseDate.setUTCHours(baseDate.getUTCHours() - offset);
+        
+        return baseDate;
+      };
+      
+      // Find actual earliest start and latest end by comparing UTC times
+      const earliestStart = allStartTimes.reduce((earliest, current, index) => {
+        const earliestTime = parseTimeWithTimezone(earliest.time, shabbatData[allStartTimes.indexOf(earliest)].date, shabbatData[allStartTimes.indexOf(earliest)].timezone);
+        const currentTime = parseTimeWithTimezone(current.time, shabbatData[index].date, shabbatData[index].timezone);
+        return currentTime < earliestTime ? current : earliest;
+      });
+      
+      const latestEnd = allEndTimes.reduce((latest, current, index) => {
+        const latestTime = parseTimeWithTimezone(latest.time, shabbatData[allEndTimes.indexOf(latest)].date, shabbatData[allEndTimes.indexOf(latest)].timezone);
+        const currentTime = parseTimeWithTimezone(current.time, shabbatData[index].date, shabbatData[index].timezone);
+        return currentTime > latestTime ? current : latest;
+      });
       
       const response = {
         currentDate: new Date().toLocaleDateString('en-US', {

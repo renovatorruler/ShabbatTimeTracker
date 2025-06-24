@@ -2,11 +2,17 @@ import { z } from "zod";
 
 export const locationInputSchema = z.object({
   homeLocation: z.string().min(1, "Home location is required"),
+  locations: z.array(z.string()).min(1, "At least one additional location is required"),
+});
+
+export const legacyLocationInputSchema = z.object({
+  homeLocation: z.string().min(1, "Home location is required"),
   secondaryLocation: z.string().min(1, "Secondary location is required"),
   tertiaryLocation: z.string().optional(),
 });
 
 export type LocationInput = z.infer<typeof locationInputSchema>;
+export type LegacyLocationInput = z.infer<typeof legacyLocationInputSchema>;
 
 export const shabbatTimesSchema = z.object({
   name: z.string(),
