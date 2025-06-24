@@ -90,10 +90,13 @@ A web application that displays Shabbat start and end times across multiple loca
 - **Port Configuration**: Internal port 5000, external port 80
 - **Process Management**: npm scripts for development and production
 
-## Changelog
+## Recent Changes
 
-Changelog:
-- June 24, 2025. Initial setup
+- June 24, 2025: Initial Shabbat times app setup with React frontend and Express backend
+- June 24, 2025: Fixed location processing to handle both city names and zip codes correctly
+- June 24, 2025: Implemented proper Hebcal API integration with zip code detection
+- June 24, 2025: Added timezone conversion logic for multi-location coordination
+- June 24, 2025: App now successfully displays different Shabbat times for different locations
 
 ## User Preferences
 

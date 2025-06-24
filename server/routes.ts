@@ -120,12 +120,10 @@ async function fetchShabbatTimes(location: string): Promise<{
   
   // Check if input is a zip code first
   let url: string;
-  console.log(`Checking if "${location}" is zip code: ${isZipCode(location)}`);
   
   if (isZipCode(location)) {
     // For zip codes, always use the geo=zip parameter
     url = `https://www.hebcal.com/shabbat?cfg=json&geo=zip&zip=${location.trim()}&M=on&lg=s`;
-    console.log(`Using zip endpoint for ${location}`);
   } else {
     // Use mapping logic for location names
     const mapping = LOCATION_MAPPINGS[locationKey];
@@ -138,11 +136,8 @@ async function fetchShabbatTimes(location: string): Promise<{
     }
   }
   
-  console.log(`Fetching Shabbat times for ${location} from: ${url}`);
-  
   try {
     const response = await fetch(url);
-    console.log(`Response status for ${location}: ${response.status}`);
     
     if (!response.ok) {
       throw new Error(`API request failed: ${response.statusText}`);
@@ -189,7 +184,6 @@ async function fetchShabbatTimes(location: string): Promise<{
       },
     };
     
-    console.log(`Successfully fetched data for ${location}:`, result.name, result.timezone);
     return result;
     
   } catch (error) {
