@@ -76,7 +76,7 @@ export function ShabbatTimesDisplay({ locations }: ShabbatTimesDisplayProps) {
                 </div>
                 <h4 className="font-semibold text-text-primary mb-2">Shabbat Starts</h4>
                 <p className="text-2xl font-bold text-text-primary">{location.shabbatStart}</p>
-                <p className="text-sm text-text-secondary">Friday, {location.timezone}</p>
+                <p className="text-sm text-text-secondary">{new Date(location.date).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}, {location.timezone}</p>
               </div>
               
               {/* Shabbat End */}
@@ -86,7 +86,7 @@ export function ShabbatTimesDisplay({ locations }: ShabbatTimesDisplayProps) {
                 </div>
                 <h4 className="font-semibold text-text-primary mb-2">Shabbat Ends</h4>
                 <p className="text-2xl font-bold text-text-primary">{location.shabbatEnd}</p>
-                <p className="text-sm text-text-secondary">Saturday, {location.timezone}</p>
+                <p className="text-sm text-text-secondary">{new Date(new Date(location.date).getTime() + 24*60*60*1000).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}, {location.timezone}</p>
               </div>
             </div>
             
