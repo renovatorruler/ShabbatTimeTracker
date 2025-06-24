@@ -80,6 +80,7 @@ export function LocationForm({ onSubmit, isLoading }: LocationFormProps) {
               onChange={(e) => handleInputChange("homeLocation", e.target.value)}
               onFocus={(e) => e.target.value.length >= 2 && fetchSuggestions(e.target.value, "homeLocation")}
               className="w-full"
+              autoComplete="off"
             />
             {showSuggestions.homeLocation && suggestions.homeLocation?.length > 0 && (
               <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-auto">
@@ -113,6 +114,7 @@ export function LocationForm({ onSubmit, isLoading }: LocationFormProps) {
               onChange={(e) => handleInputChange("secondaryLocation", e.target.value)}
               onFocus={(e) => e.target.value.length >= 2 && fetchSuggestions(e.target.value, "secondaryLocation")}
               className="w-full"
+              autoComplete="off"
             />
             {showSuggestions.secondaryLocation && suggestions.secondaryLocation?.length > 0 && (
               <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-auto">
@@ -146,6 +148,7 @@ export function LocationForm({ onSubmit, isLoading }: LocationFormProps) {
               onChange={(e) => handleInputChange("tertiaryLocation", e.target.value)}
               onFocus={(e) => e.target.value.length >= 2 && fetchSuggestions(e.target.value, "tertiaryLocation")}
               className="w-full"
+              autoComplete="off"
             />
             {showSuggestions.tertiaryLocation && suggestions.tertiaryLocation?.length > 0 && (
               <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-auto">
