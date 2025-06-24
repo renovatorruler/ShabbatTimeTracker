@@ -2,6 +2,199 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Print Styles */
+@media print {
+  @page {
+    margin: 0.5in;
+    size: letter;
+  }
+
+  * {
+    -webkit-print-color-adjust: exact !important;
+    color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  body {
+    font-size: 12pt !important;
+    line-height: 1.4 !important;
+    color: #000 !important;
+    background: white !important;
+  }
+
+  /* Hide elements that shouldn't print */
+  header,
+  footer,
+  .no-print,
+  button,
+  input,
+  form,
+  nav {
+    display: none !important;
+  }
+
+  /* Main container adjustments */
+  .max-w-4xl {
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Card styling for print */
+  .bg-card,
+  .bg-white {
+    background: white !important;
+    border: 1px solid #ddd !important;
+    box-shadow: none !important;
+    margin-bottom: 0.5rem !important;
+    break-inside: avoid !important;
+  }
+
+  /* Location cards - compact layout */
+  .space-y-6 {
+    space-y: 0.25rem !important;
+  }
+
+  /* Card content padding */
+  .p-6 {
+    padding: 0.5rem !important;
+  }
+
+  /* Grid layouts for print */
+  .grid {
+    display: grid !important;
+  }
+
+  .md\\:grid-cols-2 {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 1rem !important;
+  }
+
+  /* Text sizing for print */
+  .text-2xl {
+    font-size: 16pt !important;
+  }
+
+  .text-xl {
+    font-size: 14pt !important;
+  }
+
+  .text-lg {
+    font-size: 13pt !important;
+  }
+
+  .text-sm {
+    font-size: 10pt !important;
+  }
+
+  .text-xs {
+    font-size: 9pt !important;
+  }
+
+  /* Colors for print */
+  .text-white {
+    color: white !important;
+  }
+
+  .bg-primary,
+  .bg-secondary,
+  .bg-success,
+  .bg-blue-600,
+  .bg-green-600,
+  .bg-purple-600 {
+    background: #333 !important;
+    color: white !important;
+  }
+
+  .bg-blue-50,
+  .bg-green-50,
+  .bg-gray-50 {
+    background: #f8f9fa !important;
+    border: 1px solid #dee2e6 !important;
+  }
+
+  /* Planning summary styling */
+  .bg-gradient-to-r {
+    background: #2c3e50 !important;
+    color: white !important;
+  }
+
+  /* Ensure single page layout */
+  .summary-card {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  /* Compact spacing */
+  .mb-6,
+  .mb-8 {
+    margin-bottom: 0.25rem !important;
+  }
+
+  .mt-8 {
+    margin-top: 0.25rem !important;
+  }
+
+  .py-6,
+  .py-8 {
+    padding-top: 0.25rem !important;
+    padding-bottom: 0.25rem !important;
+  }
+
+  /* Icons - make smaller */
+  .h-8,
+  .w-8 {
+    height: 12pt !important;
+    width: 12pt !important;
+  }
+
+  .h-5,
+  .w-5 {
+    height: 10pt !important;
+    width: 10pt !important;
+  }
+
+  .h-4,
+  .w-4 {
+    height: 8pt !important;
+    width: 8pt !important;
+  }
+
+  /* Remove rounded corners and shadows for cleaner print */
+  .rounded,
+  .rounded-lg,
+  .rounded-md,
+  .rounded-full {
+    border-radius: 0 !important;
+  }
+
+  .shadow,
+  .shadow-sm,
+  .shadow-lg {
+    box-shadow: none !important;
+  }
+
+  /* Ensure content fits on one page */
+  .min-h-screen {
+    min-height: auto !important;
+  }
+
+  /* Print-specific layout adjustments */
+  @media print and (max-height: 11in) {
+    .space-y-6 > * + * {
+      margin-top: 0.125rem !important;
+    }
+    
+    .p-6 {
+      padding: 0.25rem !important;
+    }
+    
+    .text-2xl {
+      font-size: 14pt !important;
+    }
+  }
+}
+
 :root {
   --background: hsl(240, 10%, 97%);
   --foreground: hsl(28, 14%, 11%);

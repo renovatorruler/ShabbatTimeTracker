@@ -115,6 +115,7 @@ A web application that displays Shabbat start and end times across multiple loca
 - June 24, 2025: Simplified planning summary to show earliest start and latest end in home timezone with clear date information
 - June 24, 2025: Added timezone labels and location sources throughout the UI for better clarity
 - June 24, 2025: Added Vercel deployment configuration with proper API routing and static build setup
+- June 24, 2025: Added comprehensive print CSS for clean single-page printing with proper formatting and layout optimization
 
 ## User Preferences
 

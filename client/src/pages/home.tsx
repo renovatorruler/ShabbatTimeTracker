@@ -37,7 +37,7 @@ export default function Home() {
   return (
     <div className="bg-background min-h-screen">
       {/* Header */}
-      <header className="bg-card shadow-sm border-b border-gray-200">
+      <header className="bg-card shadow-sm border-b border-gray-200 no-print">
         <div className="max-w-4xl mx-auto px-4 py-6">
           <div className="flex items-center space-x-3">
             <Star className="h-8 w-8 text-primary" />
@@ -50,7 +50,9 @@ export default function Home() {
       </header>
 
       <main className="max-w-4xl mx-auto px-4 py-8">
-        <LocationWidget onSubmit={handleFormSubmit} isLoading={isLoading} />
+        <div className="no-print">
+          <LocationWidget onSubmit={handleFormSubmit} isLoading={isLoading} />
+        </div>
 
         {error && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-8">
@@ -82,7 +84,7 @@ export default function Home() {
         )}
 
         {/* Footer */}
-        <footer className="text-center mt-12 py-6 border-t border-gray-200">
+        <footer className="text-center mt-12 py-6 border-t border-gray-200 no-print">
           <p className="text-text-secondary text-sm">
             Times provided by Hebcal Jewish calendar API.{" "}
             <a 

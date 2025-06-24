@@ -17,7 +17,7 @@ interface SummaryCardProps {
 
 export function SummaryCard({ summary, homeTimezone }: SummaryCardProps) {
   return (
-    <Card className="bg-gradient-to-r from-primary to-secondary text-white mt-8">
+    <Card className="bg-gradient-to-r from-primary to-secondary text-white mt-8 summary-card">
       <CardContent className="p-6">
         <h3 className="text-xl font-semibold mb-4 flex items-center">
           <Info className="mr-2 h-5 w-5" />
