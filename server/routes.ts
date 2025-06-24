@@ -25,18 +25,24 @@ interface HebcalResponse {
 }
 
 // Location-specific zip codes and city mappings for accurate Hebcal API calls
-const LOCATION_MAPPINGS: Record<string, { zip?: string; city?: string; country?: string }> = {
+const LOCATION_MAPPINGS: Record<string, { zip?: string; city?: string; country?: string; geonameid?: string }> = {
   'san juan, puerto rico': { zip: '00901' },
   'puerto rico': { zip: '00901' },
   'san juan': { zip: '00901' },
   'new york, ny': { zip: '10001' },
   'new york': { zip: '10001' },
-  'london, uk': { city: 'London', country: 'UK' },
-  'london': { city: 'London', country: 'UK' },
-  'istanbul, turkey': { city: 'Istanbul', country: 'Turkey' },
-  'istanbul': { city: 'Istanbul', country: 'Turkey' },
-  'lisbon, portugal': { city: 'Lisbon', country: 'Portugal' },
-  'lisbon': { city: 'Lisbon', country: 'Portugal' },
+  'london, uk': { geonameid: '2643743' },
+  'london': { geonameid: '2643743' },
+  'istanbul, turkey': { geonameid: '745044' },
+  'istanbul': { geonameid: '745044' },
+  'lisbon, portugal': { geonameid: '2267057' },
+  'lisbon': { geonameid: '2267057' },
+  'paris, france': { geonameid: '2988507' },
+  'paris': { geonameid: '2988507' },
+  'madrid, spain': { geonameid: '3117735' },
+  'madrid': { geonameid: '3117735' },
+  'rome, italy': { geonameid: '3169070' },
+  'rome': { geonameid: '3169070' },
   // Direct zip code mappings
   '00901': { zip: '00901' },
   '00911': { zip: '00911' },
@@ -127,12 +133,18 @@ async function fetchShabbatTimes(location: string): Promise<{
   } else {
     // Use mapping logic for location names
     const mapping = LOCATION_MAPPINGS[locationKey];
+    console.log(`Mapping for "${locationKey}":`, mapping);
+    
     if (mapping && mapping.zip) {
       url = `https://www.hebcal.com/shabbat?cfg=json&geo=zip&zip=${mapping.zip}&M=on&lg=s`;
+    } else if (mapping && mapping.geonameid) {
+      url = `https://www.hebcal.com/shabbat?cfg=json&geo=geoname&geonameid=${mapping.geonameid}&M=on&lg=s`;
+      console.log(`Using geonameid ${mapping.geonameid} for ${location}`);
     } else if (mapping && mapping.city && mapping.country) {
       url = `https://www.hebcal.com/shabbat?cfg=json&geo=pos&pos=${encodeURIComponent(mapping.city + ', ' + mapping.country)}&M=on&lg=s`;
     } else {
       url = `https://www.hebcal.com/shabbat?cfg=json&geo=pos&pos=${encodeURIComponent(location)}&M=on&lg=s`;
+      console.log(`No mapping found for "${locationKey}", using generic geocoding`);
     }
   }
   
