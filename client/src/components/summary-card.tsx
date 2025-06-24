@@ -1,4 +1,4 @@
-import { Info, Lightbulb, Phone } from "lucide-react";
+import { Info, Phone } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
 interface SummaryCardProps {
