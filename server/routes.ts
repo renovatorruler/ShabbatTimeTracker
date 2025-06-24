@@ -296,20 +296,20 @@ function convertTimeToTimezone(timeStr: string, date: string, fromTz: string, to
     
     const hoursDiff = toOffset - fromOffset;
     
-    let convertedHours = hours + hoursDiff;
-    let convertedMinutes = minutes;
+    // Split hoursDiff into whole hours and fractional hours
+    const wholeHours = Math.floor(hoursDiff);
+    const fractionalHours = hoursDiff - wholeHours;
     
-    // Handle fractional hours (like India's +5.5)
-    if (hoursDiff % 1 !== 0) {
-      const extraMinutes = (hoursDiff % 1) * 60;
-      convertedMinutes += extraMinutes;
-      if (convertedMinutes >= 60) {
-        convertedHours += 1;
-        convertedMinutes -= 60;
-      } else if (convertedMinutes < 0) {
-        convertedHours -= 1;
-        convertedMinutes += 60;
-      }
+    let convertedHours = hours + wholeHours;
+    let convertedMinutes = minutes + (fractionalHours * 60);
+    
+    // Handle minute overflow/underflow
+    if (convertedMinutes >= 60) {
+      convertedHours += Math.floor(convertedMinutes / 60);
+      convertedMinutes = convertedMinutes % 60;
+    } else if (convertedMinutes < 0) {
+      convertedHours -= Math.ceil(Math.abs(convertedMinutes) / 60);
+      convertedMinutes = 60 + (convertedMinutes % 60);
     }
     
     let dayAdjustment = '';
@@ -329,14 +329,17 @@ function convertTimeToTimezone(timeStr: string, date: string, fromTz: string, to
     
     if (convertedHours === 0) {
       displayHours = 12;
+      displayMeridiem = 'AM';
     } else if (convertedHours > 12) {
       displayHours = convertedHours - 12;
       displayMeridiem = 'PM';
     } else if (convertedHours === 12) {
       displayMeridiem = 'PM';
+    } else if (convertedHours > 0) {
+      displayMeridiem = 'AM';
     }
     
-    return `${displayHours}:${convertedMinutes.toString().padStart(2, '0')} ${displayMeridiem}${dayAdjustment}`;
+    return `${displayHours}:${Math.round(convertedMinutes).toString().padStart(2, '0')} ${displayMeridiem}${dayAdjustment}`;
   } catch (error) {
     console.error('Error converting timezone:', error);
     return timeStr;
