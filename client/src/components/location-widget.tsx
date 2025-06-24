@@ -30,6 +30,7 @@ export function LocationWidget({ onSubmit, isLoading }: LocationWidgetProps) {
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [suggestions, setSuggestions] = useState<{ [key: string]: LocationSuggestion[] }>({});
   const [showSuggestions, setShowSuggestions] = useState<{ [key: string]: boolean }>({});
+  const [activeField, setActiveField] = useState<string | null>(null);
 
   const getLocationIcon = (type: string, index: number) => {
     if (type === 'home') return <Home className="h-4 w-4" />;
@@ -81,6 +82,24 @@ export function LocationWidget({ onSubmit, isLoading }: LocationWidgetProps) {
   const handleSuggestionClick = (fieldId: string, suggestion: LocationSuggestion) => {
     updateLocation(fieldId, suggestion.label);
     setShowSuggestions(prev => ({ ...prev, [fieldId]: false }));
+    setActiveField(null);
+  };
+
+  const handleInputFocus = (fieldId: string, value: string) => {
+    setActiveField(fieldId);
+    if (value.length >= 2) {
+      fetchSuggestions(value, fieldId);
+    }
+  };
+
+  const handleInputBlur = (fieldId: string) => {
+    // Delay hiding suggestions to allow clicking on them
+    setTimeout(() => {
+      if (activeField === fieldId) {
+        setShowSuggestions(prev => ({ ...prev, [fieldId]: false }));
+        setActiveField(null);
+      }
+    }, 200);
   };
 
   const addLocation = () => {
@@ -96,6 +115,20 @@ export function LocationWidget({ onSubmit, isLoading }: LocationWidgetProps) {
         delete newErrors[id];
         return newErrors;
       });
+      // Clean up suggestion state for removed location
+      setSuggestions(prev => {
+        const newSuggestions = { ...prev };
+        delete newSuggestions[id];
+        return newSuggestions;
+      });
+      setShowSuggestions(prev => {
+        const newShowSuggestions = { ...prev };
+        delete newShowSuggestions[id];
+        return newShowSuggestions;
+      });
+      if (activeField === id) {
+        setActiveField(null);
+      }
     }
   };
 
@@ -151,13 +184,13 @@ export function LocationWidget({ onSubmit, isLoading }: LocationWidgetProps) {
                     }
                     value={location.value}
                     onChange={(e) => updateLocation(location.id, e.target.value)}
-                    onFocus={() => location.value.length >= 2 && fetchSuggestions(location.value, location.id)}
-                    onBlur={() => setTimeout(() => setShowSuggestions(prev => ({ ...prev, [location.id]: false })), 200)}
+                    onFocus={() => handleInputFocus(location.id, location.value)}
+                    onBlur={() => handleInputBlur(location.id)}
                     className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                     autoComplete="off"
                   />
                   
-                  {showSuggestions[location.id] && suggestions[location.id]?.length > 0 && (
+                  {showSuggestions[location.id] && suggestions[location.id]?.length > 0 && activeField === location.id && (
                     <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-auto">
                       {suggestions[location.id].map((suggestion, suggestionIndex) => (
                         <button

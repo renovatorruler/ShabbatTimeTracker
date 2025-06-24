@@ -111,6 +111,7 @@ A web application that displays Shabbat start and end times across multiple loca
 - June 24, 2025: Enhanced schema to support flexible number of locations while maintaining backward compatibility
 - June 24, 2025: Created LocationWidget with unlimited location support and auto-complete functionality
 - June 24, 2025: Restored auto-complete suggestions in the new flexible location widget
+- June 24, 2025: Fixed autocomplete dropdown focus/blur handling to prevent persistent dropdowns
 
 ## User Preferences
 
