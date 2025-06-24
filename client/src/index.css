@@ -115,8 +115,21 @@
 
   /* Planning summary styling */
   .bg-gradient-to-r {
-    background: #2c3e50 !important;
-    color: white !important;
+    background: white !important;
+    color: #000 !important;
+    border: 2px solid #333 !important;
+  }
+
+  /* Ensure summary card text is black */
+  .summary-card * {
+    color: #000 !important;
+  }
+
+  /* Override any white text in summary */
+  .summary-card .text-white,
+  .summary-card .text-blue-100,
+  .summary-card .text-blue-200 {
+    color: #333 !important;
   }
 
   /* Ensure single page layout */
