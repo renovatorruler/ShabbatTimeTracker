@@ -346,7 +346,7 @@ function convertTimeToTimezone(timeStr: string, date: string, fromTz: string, to
   }
 }
 
-export async function registerRoutes(app: Express): Promise<Server> {
+export async function registerRoutes(app: Express): Promise<Server | void> {
   // Auto-complete endpoint for location suggestions
   app.get("/api/locations/suggest", (req, res) => {
     const query = req.query.q as string;
@@ -612,6 +612,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Only create server if not in Vercel environment
+  if (process.env.VERCEL) {
+    return;
+  }
+  
   const httpServer = createServer(app);
   return httpServer;
 }
