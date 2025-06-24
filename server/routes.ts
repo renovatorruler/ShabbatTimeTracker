@@ -103,64 +103,74 @@ async function fetchShabbatTimes(location: string): Promise<{
   date: string;
   coordinates?: { lat: number; lng: number };
 }> {
+  const locationKey = location.toLowerCase();
+  
+  // Use the same mapping logic to get the correct API endpoint
+  const mapping = LOCATION_MAPPINGS[locationKey];
+  let url: string;
+  
+  if (mapping && mapping.zip) {
+    url = `https://www.hebcal.com/shabbat?cfg=json&geo=zip&zip=${mapping.zip}&M=on&lg=s`;
+  } else if (mapping && mapping.city && mapping.country) {
+    url = `https://www.hebcal.com/shabbat?cfg=json&geo=pos&pos=${encodeURIComponent(mapping.city + ', ' + mapping.country)}&M=on&lg=s`;
+  } else {
+    url = `https://www.hebcal.com/shabbat?cfg=json&geo=pos&pos=${encodeURIComponent(location)}&M=on&lg=s`;
+  }
+  
+  console.log(`Fetching Shabbat times for ${location} from: ${url}`);
+  
   try {
-    // First get coordinates and proper location name
-    const coords = await fetchLocationCoords(location);
+    const response = await fetch(url);
+    console.log(`Response status for ${location}: ${response.status}`);
     
-    // Try Hebcal API first
-    try {
-      const url = `https://www.hebcal.com/shabbat?cfg=json&geonameid=&M=on&lg=s&geo=pos&pos=${coords.lat},${coords.lng}`;
-      const response = await fetch(url);
-      
-      if (response.ok) {
-        const data: HebcalResponse = await response.json();
-        
-        if (data.items && data.items.length > 0) {
-          // Find candle lighting and Havdalah times
-          const candleLighting = data.items.find(item => 
-            item.title.includes('Candle lighting') || 
-            item.category === 'candles'
-          );
-          
-          const havdalah = data.items.find(item => 
-            item.title.includes('Havdalah') || 
-            item.category === 'havdalah'
-          );
-          
-          if (candleLighting && havdalah) {
-            // Extract time from title (format: "Candle lighting: 6:45pm")
-            const startTimeMatch = candleLighting.title.match(/(\d{1,2}:\d{2}[ap]m)/i);
-            const endTimeMatch = havdalah.title.match(/(\d{1,2}:\d{2}[ap]m)/i);
-            
-            if (startTimeMatch && endTimeMatch) {
-              return {
-                name: data.location?.title || coords.name,
-                timezone: data.location?.tzid || coords.timezone,
-                shabbatStart: formatTime(startTimeMatch[1]),
-                shabbatEnd: formatTime(endTimeMatch[1]),
-                date: candleLighting.date,
-                coordinates: coords,
-              };
-            }
-          }
-        }
-      }
-    } catch (apiError) {
-      console.log(`Hebcal API failed for ${location}, using demo data`);
+    if (!response.ok) {
+      throw new Error(`API request failed: ${response.statusText}`);
     }
     
-    // If API data is not available, we cannot provide Shabbat times
-    console.log(`No Shabbat times data available for ${location}`);
-    return {
-      name: coords.name,
-      timezone: coords.timezone,
-      shabbatStart: "N/A",
-      shabbatEnd: "N/A", 
-      date: new Date().toISOString(),
-      coordinates: coords,
+    const data: HebcalResponse = await response.json();
+    
+    if (!data.location || !data.items || data.items.length === 0) {
+      throw new Error(`No location or times data found for ${location}`);
+    }
+    
+    // Find candle lighting and Havdalah times
+    const candleLighting = data.items.find(item => 
+      item.title.includes('Candle lighting') || 
+      item.category === 'candles'
+    );
+    
+    const havdalah = data.items.find(item => 
+      item.title.includes('Havdalah') || 
+      item.category === 'havdalah'
+    );
+    
+    if (!candleLighting || !havdalah) {
+      throw new Error(`Incomplete Shabbat times for ${location}`);
+    }
+    
+    // Extract time from title (format: "Candle lighting: 6:45pm")
+    const startTimeMatch = candleLighting.title.match(/(\d{1,2}:\d{2}[ap]m)/i);
+    const endTimeMatch = havdalah.title.match(/(\d{1,2}:\d{2}[ap]m)/i);
+    
+    if (!startTimeMatch || !endTimeMatch) {
+      throw new Error(`Could not parse times for ${location}`);
+    }
+    
+    const result = {
+      name: data.location.title,
+      timezone: data.location.tzid,
+      shabbatStart: formatTime(startTimeMatch[1]),
+      shabbatEnd: formatTime(endTimeMatch[1]),
+      date: candleLighting.date,
+      coordinates: {
+        lat: data.location.latitude,
+        lng: data.location.longitude,
+      },
     };
     
-    throw new Error(`No Shabbat times available for ${location}`);
+    console.log(`Successfully fetched data for ${location}:`, result.name, result.timezone);
+    return result;
+    
   } catch (error) {
     console.error(`Error fetching Shabbat times for ${location}:`, error);
     throw error;
