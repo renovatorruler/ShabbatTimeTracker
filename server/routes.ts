@@ -36,8 +36,21 @@ const LOCATION_MAPPINGS: Record<string, { zip?: string; city?: string; country?:
   'istanbul, turkey': { city: 'Istanbul', country: 'Turkey' },
   'istanbul': { city: 'Istanbul', country: 'Turkey' },
   'lisbon, portugal': { city: 'Lisbon', country: 'Portugal' },
-  'lisbon': { city: 'Lisbon', country: 'Portugal' }
+  'lisbon': { city: 'Lisbon', country: 'Portugal' },
+  // Direct zip code mappings
+  '00901': { zip: '00901' },
+  '00911': { zip: '00911' },
+  '00912': { zip: '00912' },
+  '10001': { zip: '10001' },
+  '11223': { zip: '11223' },
+  '78640': { zip: '78640' }
 };
+
+// Function to detect if input is a zip code
+function isZipCode(input: string): boolean {
+  const trimmed = input.trim();
+  return /^\d{5}$/.test(trimmed);
+}
 
 async function fetchLocationCoords(location: string): Promise<{ lat: number; lng: number; name: string; timezone: string }> {
   const locationKey = location.toLowerCase();
@@ -103,18 +116,26 @@ async function fetchShabbatTimes(location: string): Promise<{
   date: string;
   coordinates?: { lat: number; lng: number };
 }> {
-  const locationKey = location.toLowerCase();
+  const locationKey = location.toLowerCase().trim();
   
-  // Use the same mapping logic to get the correct API endpoint
-  const mapping = LOCATION_MAPPINGS[locationKey];
+  // Check if input is a zip code first
   let url: string;
+  console.log(`Checking if "${location}" is zip code: ${isZipCode(location)}`);
   
-  if (mapping && mapping.zip) {
-    url = `https://www.hebcal.com/shabbat?cfg=json&geo=zip&zip=${mapping.zip}&M=on&lg=s`;
-  } else if (mapping && mapping.city && mapping.country) {
-    url = `https://www.hebcal.com/shabbat?cfg=json&geo=pos&pos=${encodeURIComponent(mapping.city + ', ' + mapping.country)}&M=on&lg=s`;
+  if (isZipCode(location)) {
+    // For zip codes, always use the geo=zip parameter
+    url = `https://www.hebcal.com/shabbat?cfg=json&geo=zip&zip=${location.trim()}&M=on&lg=s`;
+    console.log(`Using zip endpoint for ${location}`);
   } else {
-    url = `https://www.hebcal.com/shabbat?cfg=json&geo=pos&pos=${encodeURIComponent(location)}&M=on&lg=s`;
+    // Use mapping logic for location names
+    const mapping = LOCATION_MAPPINGS[locationKey];
+    if (mapping && mapping.zip) {
+      url = `https://www.hebcal.com/shabbat?cfg=json&geo=zip&zip=${mapping.zip}&M=on&lg=s`;
+    } else if (mapping && mapping.city && mapping.country) {
+      url = `https://www.hebcal.com/shabbat?cfg=json&geo=pos&pos=${encodeURIComponent(mapping.city + ', ' + mapping.country)}&M=on&lg=s`;
+    } else {
+      url = `https://www.hebcal.com/shabbat?cfg=json&geo=pos&pos=${encodeURIComponent(location)}&M=on&lg=s`;
+    }
   }
   
   console.log(`Fetching Shabbat times for ${location} from: ${url}`);
