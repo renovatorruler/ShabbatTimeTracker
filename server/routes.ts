@@ -24,24 +24,57 @@ interface HebcalResponse {
   items: HebcalEvent[];
 }
 
-// Location-specific Hebcal endpoints to ensure accurate data
-const LOCATION_ENDPOINTS: Record<string, string> = {
-  'san juan, puerto rico': 'https://www.hebcal.com/shabbat?cfg=json&geonameid=4568138&M=on&lg=s',
-  'puerto rico': 'https://www.hebcal.com/shabbat?cfg=json&geonameid=4568138&M=on&lg=s',
-  'new york, ny': 'https://www.hebcal.com/shabbat?cfg=json&geonameid=5128581&M=on&lg=s',
-  'new york': 'https://www.hebcal.com/shabbat?cfg=json&geonameid=5128581&M=on&lg=s',
-  'london, uk': 'https://www.hebcal.com/shabbat?cfg=json&geonameid=2643743&M=on&lg=s',
-  'london': 'https://www.hebcal.com/shabbat?cfg=json&geonameid=2643743&M=on&lg=s',
-  'istanbul, turkey': 'https://www.hebcal.com/shabbat?cfg=json&geonameid=745044&M=on&lg=s',
-  'istanbul': 'https://www.hebcal.com/shabbat?cfg=json&geonameid=745044&M=on&lg=s',
-  'lisbon, portugal': 'https://www.hebcal.com/shabbat?cfg=json&geonameid=2267057&M=on&lg=s',
-  'lisbon': 'https://www.hebcal.com/shabbat?cfg=json&geonameid=2267057&M=on&lg=s'
+// Location-specific zip codes and city mappings for accurate Hebcal API calls
+const LOCATION_MAPPINGS: Record<string, { zip?: string; city?: string; country?: string }> = {
+  'san juan, puerto rico': { zip: '00901' },
+  'puerto rico': { zip: '00901' },
+  'san juan': { zip: '00901' },
+  'new york, ny': { zip: '10001' },
+  'new york': { zip: '10001' },
+  'london, uk': { city: 'London', country: 'UK' },
+  'london': { city: 'London', country: 'UK' },
+  'istanbul, turkey': { city: 'Istanbul', country: 'Turkey' },
+  'istanbul': { city: 'Istanbul', country: 'Turkey' },
+  'lisbon, portugal': { city: 'Lisbon', country: 'Portugal' },
+  'lisbon': { city: 'Lisbon', country: 'Portugal' }
 };
 
 async function fetchLocationCoords(location: string): Promise<{ lat: number; lng: number; name: string; timezone: string }> {
+  const locationKey = location.toLowerCase();
+  
+  // Try location-specific mapping first
+  const mapping = LOCATION_MAPPINGS[locationKey];
+  if (mapping) {
+    try {
+      let url: string;
+      if (mapping.zip) {
+        url = `https://www.hebcal.com/shabbat?cfg=json&geo=zip&zip=${mapping.zip}&M=on&lg=s`;
+      } else if (mapping.city && mapping.country) {
+        url = `https://www.hebcal.com/shabbat?cfg=json&geo=pos&pos=${encodeURIComponent(mapping.city + ', ' + mapping.country)}&M=on&lg=s`;
+      } else {
+        url = `https://www.hebcal.com/shabbat?cfg=json&geo=pos&pos=${encodeURIComponent(location)}&M=on&lg=s`;
+      }
+      
+      const response = await fetch(url);
+      if (response.ok) {
+        const data: HebcalResponse = await response.json();
+        if (data.location) {
+          return {
+            lat: data.location.latitude,
+            lng: data.location.longitude,
+            name: data.location.title,
+            timezone: data.location.tzid,
+          };
+        }
+      }
+    } catch (error) {
+      console.log(`Mapped endpoint failed for ${location}, trying generic`);
+    }
+  }
+  
+  // Try general geocoding
   try {
-    // Try Hebcal API first
-    const testUrl = `https://www.hebcal.com/shabbat?cfg=json&geonameid=&M=on&lg=s&geo=pos&pos=${encodeURIComponent(location)}`;
+    const testUrl = `https://www.hebcal.com/shabbat?cfg=json&geo=pos&pos=${encodeURIComponent(location)}&M=on&lg=s`;
     const testResponse = await fetch(testUrl);
     
     if (testResponse.ok) {
@@ -56,20 +89,7 @@ async function fetchLocationCoords(location: string): Promise<{ lat: number; lng
       }
     }
   } catch (error) {
-    console.log(`API call failed for ${location}, using fallback data`);
-  }
-  
-  // Fallback to demo data
-  const locationKey = location.toLowerCase();
-  const demoLocation = LOCATION_DATA[locationKey];
-  
-  if (demoLocation) {
-    return {
-      lat: demoLocation.lat,
-      lng: demoLocation.lng,
-      name: demoLocation.name,
-      timezone: demoLocation.timezone,
-    };
+    console.log(`API call failed for ${location}`);
   }
   
   throw new Error(`Location not found: ${location}`);
@@ -129,20 +149,16 @@ async function fetchShabbatTimes(location: string): Promise<{
       console.log(`Hebcal API failed for ${location}, using demo data`);
     }
     
-    // Fallback to demo data
-    const locationKey = location.toLowerCase();
-    const demoLocation = LOCATION_DATA[locationKey];
-    
-    if (demoLocation) {
-      return {
-        name: demoLocation.name,
-        timezone: demoLocation.timezone,
-        shabbatStart: demoLocation.shabbatStart,
-        shabbatEnd: demoLocation.shabbatEnd,
-        date: new Date().toISOString(),
-        coordinates: coords,
-      };
-    }
+    // If API data is not available, we cannot provide Shabbat times
+    console.log(`No Shabbat times data available for ${location}`);
+    return {
+      name: coords.name,
+      timezone: coords.timezone,
+      shabbatStart: "N/A",
+      shabbatEnd: "N/A", 
+      date: new Date().toISOString(),
+      coordinates: coords,
+    };
     
     throw new Error(`No Shabbat times available for ${location}`);
   } catch (error) {
