@@ -538,46 +538,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
         current.utcMinutes > latest.utcMinutes ? current : latest
       );
       
-      // Calculate optimal calling window in home timezone
-      const homeTimezone = shabbatData[0].timezone;
-      
-      // Find the latest start time and earliest end time in home timezone for calling window
-      const latestStartInHome = allStartTimes.reduce((latest, current, index) => {
+      // Find earliest start and latest end in home timezone
+      const parseTime = (timeStr: string): number => {
+        const match = timeStr.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+        if (!match) return 0;
+        let hours = parseInt(match[1]);
+        const minutes = parseInt(match[2]);
+        const meridiem = match[3].toUpperCase();
+        if (meridiem === 'PM' && hours !== 12) hours += 12;
+        if (meridiem === 'AM' && hours === 12) hours = 0;
+        return hours * 60 + minutes;
+      };
+
+      // Find earliest start in home timezone
+      const earliestStartInHome = allStartTimes.reduce((earliest, current, index) => {
         const currentHomeTime = shabbatData[index].shabbatStartInHomeTime;
+        const earliestHomeTime = earliest.homeTime || earliest.time;
+        return parseTime(currentHomeTime) < parseTime(earliestHomeTime) ? 
+          { ...current, homeTime: currentHomeTime } : earliest;
+      });
+      
+      // Find latest end in home timezone
+      const latestEndInHome = allEndTimes.reduce((latest, current, index) => {
+        const currentHomeTime = shabbatData[index].shabbatEndInHomeTime;
         const latestHomeTime = latest.homeTime || latest.time;
-        
-        const parseTime = (timeStr: string): number => {
-          const match = timeStr.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
-          if (!match) return 0;
-          let hours = parseInt(match[1]);
-          const minutes = parseInt(match[2]);
-          const meridiem = match[3].toUpperCase();
-          if (meridiem === 'PM' && hours !== 12) hours += 12;
-          if (meridiem === 'AM' && hours === 12) hours = 0;
-          return hours * 60 + minutes;
-        };
-        
         return parseTime(currentHomeTime) > parseTime(latestHomeTime) ? 
           { ...current, homeTime: currentHomeTime } : latest;
       });
-      
-      const earliestEndInHome = allEndTimes.reduce((earliest, current, index) => {
-        const currentHomeTime = shabbatData[index].shabbatEndInHomeTime;
-        const earliestHomeTime = earliest.homeTime || earliest.time;
-        
-        const parseTime = (timeStr: string): number => {
-          const match = timeStr.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
-          if (!match) return 0;
-          let hours = parseInt(match[1]);
-          const minutes = parseInt(match[2]);
-          const meridiem = match[3].toUpperCase();
-          if (meridiem === 'PM' && hours !== 12) hours += 12;
-          if (meridiem === 'AM' && hours === 12) hours = 0;
-          return hours * 60 + minutes;
-        };
-        
-        return parseTime(currentHomeTime) < parseTime(earliestHomeTime) ? 
-          { ...current, homeTime: currentHomeTime } : earliest;
+
+      // Get the current Shabbat date
+      const shabbatDate = new Date(shabbatData[0].date);
+      const fridayDate = shabbatDate.toLocaleDateString('en-US', { 
+        weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' 
+      });
+      const saturdayDate = new Date(shabbatDate);
+      saturdayDate.setDate(saturdayDate.getDate() + 1);
+      const saturdayDateStr = saturdayDate.toLocaleDateString('en-US', { 
+        weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' 
       });
 
       const response = {
@@ -593,11 +590,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           latestEnd: `${latestEnd.time} (${latestEnd.location} time)`,
           earliestStartTime: earliestStart.homeTime,
           latestEndTime: latestEnd.homeTime,
-          callingWindow: {
-            start: latestStartInHome.homeTime,
-            end: earliestEndInHome.homeTime,
-            description: `Schedule calls after ${latestStartInHome.homeTime} and before ${earliestEndInHome.homeTime} (${homeTimezone})`
-          }
+          earliestStartInHomeTime: `${earliestStartInHome.homeTime} - ${fridayDate}`,
+          latestEndInHomeTime: `${latestEndInHome.homeTime} - ${saturdayDateStr}`,
         },
       };
       

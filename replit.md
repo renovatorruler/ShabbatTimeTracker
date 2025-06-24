@@ -112,7 +112,7 @@ A web application that displays Shabbat start and end times across multiple loca
 - June 24, 2025: Created LocationWidget with unlimited location support and auto-complete functionality
 - June 24, 2025: Restored auto-complete suggestions in the new flexible location widget
 - June 24, 2025: Fixed autocomplete dropdown focus/blur handling to prevent persistent dropdowns
-- June 24, 2025: Added optimal call scheduling window to planning summary showing safe calling times in home timezone
+- June 24, 2025: Simplified planning summary to show earliest start and latest end in home timezone with clear date information
 
 ## User Preferences
 

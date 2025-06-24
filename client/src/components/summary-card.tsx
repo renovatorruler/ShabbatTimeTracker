@@ -7,11 +7,8 @@ interface SummaryCardProps {
     latestEnd: string;
     earliestStartTime: string;
     latestEndTime: string;
-    callingWindow?: {
-      start: string;
-      end: string;
-      description: string;
-    };
+    earliestStartInHomeTime: string;
+    latestEndInHomeTime: string;
   };
 }
 
@@ -24,32 +21,23 @@ export function SummaryCard({ summary }: SummaryCardProps) {
           Planning Summary
         </h3>
         <div className="bg-white bg-opacity-10 rounded-lg p-4">
-          <p className="text-blue-100 text-sm mb-2">Earliest Shabbat Start:</p>
-          <p className="font-semibold text-lg mb-4">{summary.earliestStart}</p>
-          
-          <p className="text-blue-100 text-sm mb-2">Latest Shabbat End:</p>
-          <p className="font-semibold text-lg mb-4">{summary.latestEnd}</p>
-          
-          {summary.callingWindow && (
-            <div className="mt-4 p-3 bg-white bg-opacity-20 rounded flex items-start space-x-3">
-              <Phone className="h-5 w-5 mt-0.5 flex-shrink-0" />
-              <div>
-                <p className="text-sm font-semibold mb-1">Optimal Call Scheduling</p>
-                <p className="text-sm">
-                  Schedule calls between <strong>{summary.callingWindow.start}</strong> and <strong>{summary.callingWindow.end}</strong>
-                </p>
-                <p className="text-xs mt-1 opacity-90">
-                  This window ensures calls don't conflict with Shabbat in any location
-                </p>
-              </div>
+          <div className="grid md:grid-cols-2 gap-6 mb-4">
+            <div>
+              <p className="text-blue-100 text-sm mb-2">Earliest Shabbat Start (Your Time):</p>
+              <p className="font-semibold text-lg">{summary.earliestStartInHomeTime}</p>
             </div>
-          )}
+            
+            <div>
+              <p className="text-blue-100 text-sm mb-2">Latest Shabbat End (Your Time):</p>
+              <p className="font-semibold text-lg">{summary.latestEndInHomeTime}</p>
+            </div>
+          </div>
           
           <div className="mt-4 p-3 bg-white bg-opacity-10 rounded flex items-start space-x-3">
             <Lightbulb className="h-5 w-5 mt-0.5 flex-shrink-0" />
             <div>
               <p className="text-sm">
-                <strong>Tip:</strong> All times shown in your home timezone for easy coordination.
+                <strong>Tip:</strong> Schedule calls to end before the earliest start time and begin after the latest end time to avoid conflicts.
               </p>
             </div>
           </div>

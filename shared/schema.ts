@@ -38,11 +38,8 @@ export const shabbatResponseSchema = z.object({
     latestEnd: z.string(),
     earliestStartTime: z.string(),
     latestEndTime: z.string(),
-    callingWindow: z.object({
-      start: z.string(),
-      end: z.string(),
-      description: z.string(),
-    }).optional(),
+    earliestStartInHomeTime: z.string(),
+    latestEndInHomeTime: z.string(),
   }),
 });
 
