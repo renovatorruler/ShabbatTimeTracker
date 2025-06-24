@@ -1,0 +1,19 @@
+make me an app which shows me the different times in which Shabbat would start at different places.
+
+so let me put it this way, let's just say I have a meeting at 9am my time with somebody who is in Spain. there would be a certain time in their time zone which will show when they should show up according to their local time to the meeting. for example, if it's 6pm then when my clock shows 9am I will open Zoom, and when their clock shows 6pm they will open Zoom. but Shabbat is different. Shabbat is a certain time from sunset which is different in my time in their time.
+
+the reason why this is helpful, is when I leave Puerto Rico and go somewhere else and I have to observe Shabbat there. for example, when I was in Turkey I wanted to know when does Shabbat start for me? and what is the time in Puerto Rico when it starts for me? at the same time, when does Shabbat start for Puerto Rico and what's the time in my timezone when it starts.
+
+FYI, there are apis available which tell you the time when Shabbat should start if you give them a zip code or a location. use those apis.
+
+to give you a concrete example, Shabbat last week for us in Puerto Rico started at 6:45 pm. the same day, Shabbat in New York started at 8:20 pm their time. technically speaking, in summer, Puerto Rico and New York are at the same time, so it's an easier calculation when it is 6:45 pm in New York and in San Juan Shabbat starts in San Juan, and when it is 8:20 pm in New York and in San Juan Shabbat starts for New York.
+
+but this becomes complicated. for example, this Shabbat I will be in Portugal, which will have a different time for beginning and end for Shabbat, compared to Puerto Rico. I want to hold the call before Shabbat starts at either of the places and give blessings to Feronia, Vayu, Lima, and Cyrus.
+
+there is time T1S-A at which Sabbath starts in the time zone (and location) A and, time T1S-B which is the same time in location B.
+
+Then there is time T2S-B which is when Shabbat starts in location B, and it’s equivalent time in location A (T2S-A)
+
+Same for end time of Shabbat
+T1E-A T1E-B
+T2E-A T2E-B
