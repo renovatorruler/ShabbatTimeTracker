@@ -16,6 +16,11 @@ interface LocationEntry {
   type: 'home' | 'other';
 }
 
+interface LocationSuggestion {
+  value: string;
+  label: string;
+}
+
 export function LocationWidget({ onSubmit, isLoading }: LocationWidgetProps) {
   const [locations, setLocations] = useState<LocationEntry[]>([
     { id: 'home', value: '', type: 'home' },
@@ -23,6 +28,8 @@ export function LocationWidget({ onSubmit, isLoading }: LocationWidgetProps) {
   ]);
 
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const [suggestions, setSuggestions] = useState<{ [key: string]: LocationSuggestion[] }>({});
+  const [showSuggestions, setShowSuggestions] = useState<{ [key: string]: boolean }>({});
 
   const getLocationIcon = (type: string, index: number) => {
     if (type === 'home') return <Home className="h-4 w-4" />;
@@ -36,6 +43,23 @@ export function LocationWidget({ onSubmit, isLoading }: LocationWidgetProps) {
     return "text-warning";
   };
 
+  const fetchSuggestions = async (query: string, fieldId: string) => {
+    if (query.length < 2) {
+      setSuggestions(prev => ({ ...prev, [fieldId]: [] }));
+      setShowSuggestions(prev => ({ ...prev, [fieldId]: false }));
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/locations/suggest?q=${encodeURIComponent(query)}`);
+      const data = await response.json();
+      setSuggestions(prev => ({ ...prev, [fieldId]: data.suggestions || [] }));
+      setShowSuggestions(prev => ({ ...prev, [fieldId]: true }));
+    } catch (error) {
+      console.error('Error fetching suggestions:', error);
+    }
+  };
+
   const updateLocation = (id: string, value: string) => {
     setLocations(prev => prev.map(loc => 
       loc.id === id ? { ...loc, value } : loc
@@ -45,6 +69,18 @@ export function LocationWidget({ onSubmit, isLoading }: LocationWidgetProps) {
     if (errors[id]) {
       setErrors(prev => ({ ...prev, [id]: '' }));
     }
+
+    // Fetch suggestions with debounce
+    if (value.length >= 2) {
+      setTimeout(() => fetchSuggestions(value, id), 300);
+    } else {
+      setShowSuggestions(prev => ({ ...prev, [id]: false }));
+    }
+  };
+
+  const handleSuggestionClick = (fieldId: string, suggestion: LocationSuggestion) => {
+    updateLocation(fieldId, suggestion.label);
+    setShowSuggestions(prev => ({ ...prev, [fieldId]: false }));
   };
 
   const addLocation = () => {
@@ -106,7 +142,7 @@ export function LocationWidget({ onSubmit, isLoading }: LocationWidgetProps) {
               </Label>
               
               <div className="flex space-x-2">
-                <div className="flex-1">
+                <div className="flex-1 relative">
                   <input
                     type="text"
                     placeholder={location.type === 'home' 
@@ -115,9 +151,26 @@ export function LocationWidget({ onSubmit, isLoading }: LocationWidgetProps) {
                     }
                     value={location.value}
                     onChange={(e) => updateLocation(location.id, e.target.value)}
+                    onFocus={() => location.value.length >= 2 && fetchSuggestions(location.value, location.id)}
+                    onBlur={() => setTimeout(() => setShowSuggestions(prev => ({ ...prev, [location.id]: false })), 200)}
                     className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                     autoComplete="off"
                   />
+                  
+                  {showSuggestions[location.id] && suggestions[location.id]?.length > 0 && (
+                    <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-auto">
+                      {suggestions[location.id].map((suggestion, suggestionIndex) => (
+                        <button
+                          key={suggestionIndex}
+                          type="button"
+                          className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 border-none bg-transparent cursor-pointer"
+                          onClick={() => handleSuggestionClick(location.id, suggestion)}
+                        >
+                          {suggestion.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
                 
                 {location.type === 'other' && locations.length > 2 && (
