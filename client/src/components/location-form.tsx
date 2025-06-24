@@ -2,9 +2,9 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Search, Home, MapPin, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
+import { LocationAutocomplete } from "@/components/location-autocomplete";
 import { locationInputSchema, type LocationInput } from "@shared/schema";
 
 interface LocationFormProps {
@@ -38,11 +38,12 @@ export function LocationForm({ onSubmit, isLoading }: LocationFormProps) {
               <Home className="inline h-4 w-4 mr-2 text-primary" />
               Home Location *
             </Label>
-            <Input
+            <LocationAutocomplete
               id="homeLocation"
               placeholder="e.g., San Juan, Puerto Rico or 00901"
+              value={form.watch("homeLocation") || ""}
+              onChange={(value) => form.setValue("homeLocation", value)}
               className="w-full"
-              {...form.register("homeLocation")}
             />
             {form.formState.errors.homeLocation && (
               <p className="text-red-500 text-sm mt-1">{form.formState.errors.homeLocation.message}</p>
@@ -55,11 +56,12 @@ export function LocationForm({ onSubmit, isLoading }: LocationFormProps) {
               <MapPin className="inline h-4 w-4 mr-2 text-secondary" />
               Secondary Location *
             </Label>
-            <Input
+            <LocationAutocomplete
               id="secondaryLocation"
               placeholder="e.g., New York, NY or 10001"
+              value={form.watch("secondaryLocation") || ""}
+              onChange={(value) => form.setValue("secondaryLocation", value)}
               className="w-full"
-              {...form.register("secondaryLocation")}
             />
             {form.formState.errors.secondaryLocation && (
               <p className="text-red-500 text-sm mt-1">{form.formState.errors.secondaryLocation.message}</p>
@@ -72,11 +74,12 @@ export function LocationForm({ onSubmit, isLoading }: LocationFormProps) {
               <Globe className="inline h-4 w-4 mr-2 text-warning" />
               Tertiary Location (Optional)
             </Label>
-            <Input
+            <LocationAutocomplete
               id="tertiaryLocation"
               placeholder="e.g., London, UK or Istanbul, Turkey"
+              value={form.watch("tertiaryLocation") || ""}
+              onChange={(value) => form.setValue("tertiaryLocation", value)}
               className="w-full"
-              {...form.register("tertiaryLocation")}
             />
           </div>
 

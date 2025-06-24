@@ -43,6 +43,18 @@ const LOCATION_MAPPINGS: Record<string, { zip?: string; city?: string; country?:
   'madrid': { geonameid: '3117735' },
   'rome, italy': { geonameid: '3169070' },
   'rome': { geonameid: '3169070' },
+  'mumbai, india': { geonameid: '1275339' },
+  'mumbai': { geonameid: '1275339' },
+  'delhi, india': { geonameid: '1273294' },
+  'delhi': { geonameid: '1273294' },
+  'tel aviv, israel': { geonameid: '293397' },
+  'tel aviv': { geonameid: '293397' },
+  'jerusalem, israel': { geonameid: '281184' },
+  'jerusalem': { geonameid: '281184' },
+  'sydney, australia': { geonameid: '2147714' },
+  'sydney': { geonameid: '2147714' },
+  'toronto, canada': { geonameid: '6167865' },
+  'toronto': { geonameid: '6167865' },
   // Direct zip code mappings
   '00901': { zip: '00901' },
   '00911': { zip: '00911' },
@@ -295,6 +307,41 @@ function convertTimeToTimezone(timeStr: string, date: string, fromTz: string, to
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Auto-complete endpoint for location suggestions
+  app.get("/api/locations/suggest", (req, res) => {
+    const query = req.query.q as string;
+    
+    if (!query || query.length < 2) {
+      return res.json({ suggestions: [] });
+    }
+    
+    const searchTerm = query.toLowerCase();
+    const suggestions = Object.keys(LOCATION_MAPPINGS)
+      .filter(location => 
+        location.includes(searchTerm) && 
+        !location.match(/^\d{5}$/) // Exclude zip codes from suggestions
+      )
+      .sort((a, b) => {
+        // Prioritize exact matches and common cities
+        const aStartsWith = a.startsWith(searchTerm);
+        const bStartsWith = b.startsWith(searchTerm);
+        if (aStartsWith && !bStartsWith) return -1;
+        if (!aStartsWith && bStartsWith) return 1;
+        return a.length - b.length; // Shorter names first
+      })
+      .slice(0, 8) // Limit to 8 suggestions
+      .map(location => ({
+        value: location,
+        label: location.split(',').map(part => 
+          part.trim().split(' ').map(word => 
+            word.charAt(0).toUpperCase() + word.slice(1)
+          ).join(' ')
+        ).join(', ')
+      }));
+    
+    res.json({ suggestions });
+  });
+
   app.post("/api/shabbat-times", async (req, res) => {
     try {
       const validatedInput = locationInputSchema.parse(req.body);

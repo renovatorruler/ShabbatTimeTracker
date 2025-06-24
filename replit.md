@@ -100,6 +100,9 @@ A web application that displays Shabbat start and end times across multiple loca
 - June 24, 2025: Added support for international locations with proper geoname ID mapping
 - June 24, 2025: Fixed time parsing to handle both 12-hour (US) and 24-hour (international) formats
 - June 24, 2025: App fully supports both US zip codes and international city names
+- June 24, 2025: Added auto-complete functionality for location suggestions
+- June 24, 2025: Enhanced location database with major international cities
+- June 24, 2025: Improved user experience with keyboard navigation and search suggestions
 
 ## User Preferences
 
