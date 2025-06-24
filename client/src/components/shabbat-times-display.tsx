@@ -97,6 +97,14 @@ export function ShabbatTimesDisplay({ locations }: ShabbatTimesDisplayProps) {
                   <Clock className="mr-2 text-warning h-4 w-4" />
                   In Your Time Zone
                 </h5>
+                <div className="mb-3 text-sm font-medium text-text-primary">
+                  {new Date(location.date).toLocaleDateString('en-US', { 
+                    weekday: 'long', 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                  })}
+                </div>
                 <div className="grid md:grid-cols-2 gap-4 text-sm">
                   <div className="flex justify-between">
                     <span className="text-text-secondary">Starts:</span>
