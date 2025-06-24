@@ -26,23 +26,7 @@ interface HebcalResponse {
 
 async function fetchLocationCoords(location: string): Promise<{ lat: number; lng: number; name: string; timezone: string }> {
   try {
-    // Use Hebcal's built-in geocoding by passing location directly
-    const testUrl = `https://www.hebcal.com/shabbat?cfg=json&geonameid=&M=on&lg=s&geo=pos&pos=${encodeURIComponent(location)}`;
-    const testResponse = await fetch(testUrl);
-    
-    if (testResponse.ok) {
-      const testData: HebcalResponse = await testResponse.json();
-      if (testData.location) {
-        return {
-          lat: testData.location.latitude,
-          lng: testData.location.longitude,
-          name: testData.location.title,
-          timezone: testData.location.tzid,
-        };
-      }
-    }
-
-    // Fallback: try with OpenStreetMap Nominatim for geocoding
+    // First try OpenStreetMap Nominatim for reliable geocoding
     const geocodeUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(location)}&limit=1`;
     const geocodeResponse = await fetch(geocodeUrl, {
       headers: {
@@ -62,11 +46,17 @@ async function fetchLocationCoords(location: string): Promise<{ lat: number; lng
     const lat = parseFloat(geocodeData[0].lat);
     const lng = parseFloat(geocodeData[0].lon);
     
+    // Extract a clean location name
+    const displayParts = geocodeData[0].display_name.split(',');
+    const cityName = displayParts[0].trim();
+    const country = displayParts[displayParts.length - 1].trim();
+    const cleanName = displayParts.length > 2 ? `${cityName}, ${country}` : `${cityName}, ${country}`;
+    
     return {
       lat,
       lng,
-      name: geocodeData[0].display_name.split(',')[0] + ', ' + geocodeData[0].display_name.split(',').slice(-2).join(',').trim(),
-      timezone: 'UTC', // Default, will be determined by Hebcal
+      name: cleanName,
+      timezone: 'UTC', // Will be determined by Hebcal
     };
   } catch (error) {
     console.error(`Error geocoding location ${location}:`, error);
@@ -232,40 +222,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
         validatedInput.tertiaryLocation,
       ].filter(Boolean) as string[];
       
+      console.log('Processing locations:', locations);
+      
       // Fetch Shabbat times for all locations
-      const shabbatData = await Promise.all(
-        locations.map(async (location, index) => {
-          const times = await fetchShabbatTimes(location);
-          
-          // For home location (first one), times are already in local time
-          if (index === 0) {
-            return {
-              ...times,
-              shabbatStartInHomeTime: times.shabbatStart + ' Friday',
-              shabbatEndInHomeTime: times.shabbatEnd + ' Saturday',
-            };
-          }
-          
-          // For other locations, convert to home timezone
-          const homeTimezone = (await fetchShabbatTimes(validatedInput.homeLocation)).timezone;
-          
-          return {
+      const shabbatData: any[] = [];
+      
+      // Process each location individually to avoid caching issues
+      for (let i = 0; i < locations.length; i++) {
+        const location = locations[i];
+        console.log(`Fetching data for location ${i}: ${location}`);
+        
+        const times = await fetchShabbatTimes(location);
+        console.log(`Received data for ${location}:`, times.name, times.timezone);
+        
+        if (i === 0) {
+          // Home location
+          shabbatData.push({
+            ...times,
+            shabbatStartInHomeTime: times.shabbatStart + ' Friday',
+            shabbatEndInHomeTime: times.shabbatEnd + ' Saturday',
+          });
+        } else {
+          // Other locations - convert to home timezone
+          const homeLocationData = shabbatData[0]; // Use already fetched home data
+          shabbatData.push({
             ...times,
             shabbatStartInHomeTime: convertTimeToTimezone(
               times.shabbatStart, 
               times.date, 
               times.timezone, 
-              homeTimezone
+              homeLocationData.timezone
             ),
             shabbatEndInHomeTime: convertTimeToTimezone(
               times.shabbatEnd, 
               times.date, 
               times.timezone, 
-              homeTimezone
+              homeLocationData.timezone
             ),
-          };
-        })
-      );
+          });
+        }
+      }
       
       // Find earliest start and latest end for summary
       const homeLocation = shabbatData[0];
