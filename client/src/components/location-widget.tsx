@@ -71,10 +71,11 @@ export function LocationWidget({ onSubmit, isLoading }: LocationWidgetProps) {
       setErrors(prev => ({ ...prev, [id]: '' }));
     }
 
-    // Fetch suggestions with debounce
+    // Fetch suggestions immediately if we have enough characters
     if (value.length >= 2) {
-      setTimeout(() => fetchSuggestions(value, id), 300);
+      fetchSuggestions(value, id);
     } else {
+      setSuggestions(prev => ({ ...prev, [id]: [] }));
       setShowSuggestions(prev => ({ ...prev, [id]: false }));
     }
   };
@@ -89,6 +90,7 @@ export function LocationWidget({ onSubmit, isLoading }: LocationWidgetProps) {
     setActiveField(fieldId);
     if (value.length >= 2) {
       fetchSuggestions(value, fieldId);
+      setShowSuggestions(prev => ({ ...prev, [fieldId]: true }));
     }
   };
 
