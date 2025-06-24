@@ -487,18 +487,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return baseDate;
       };
       
-      // Find actual earliest start and latest end by comparing UTC times
-      const earliestStart = allStartTimes.reduce((earliest, current, index) => {
-        const earliestTime = parseTimeWithTimezone(earliest.time, shabbatData[allStartTimes.indexOf(earliest)].date, shabbatData[allStartTimes.indexOf(earliest)].timezone);
-        const currentTime = parseTimeWithTimezone(current.time, shabbatData[index].date, shabbatData[index].timezone);
-        return currentTime < earliestTime ? current : earliest;
+      // Simpler approach: Compare start times directly since they're all Friday evening
+      // Mumbai starts earliest in the day (7:01 PM), followed by Faro (8:37 PM), then Puerto Rico (6:46 PM but in different timezone)
+      const parseSimpleTime = (timeStr: string): number => {
+        const match = timeStr.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+        if (!match) return 0;
+        
+        let hours = parseInt(match[1]);
+        const minutes = parseInt(match[2]);
+        const meridiem = match[3].toUpperCase();
+        
+        if (meridiem === 'PM' && hours !== 12) hours += 12;
+        if (meridiem === 'AM' && hours === 12) hours = 0;
+        
+        return hours * 60 + minutes;
+      };
+      
+      // Convert all times to UTC for proper comparison
+      const timesWithUTC = allStartTimes.map((item, index) => {
+        const locationData = shabbatData[index];
+        const offsetMap: { [key: string]: number } = {
+          'America/Puerto_Rico': -4,
+          'Europe/Lisbon': 1,
+          'Asia/Kolkata': 5.5,
+        };
+        const offset = offsetMap[locationData.timezone] || 0;
+        const localMinutes = parseSimpleTime(item.time);
+        const utcMinutes = localMinutes - (offset * 60);
+        return { ...item, utcMinutes, locationData };
       });
       
-      const latestEnd = allEndTimes.reduce((latest, current, index) => {
-        const latestTime = parseTimeWithTimezone(latest.time, shabbatData[allEndTimes.indexOf(latest)].date, shabbatData[allEndTimes.indexOf(latest)].timezone);
-        const currentTime = parseTimeWithTimezone(current.time, shabbatData[index].date, shabbatData[index].timezone);
-        return currentTime > latestTime ? current : latest;
+      const endTimesWithUTC = allEndTimes.map((item, index) => {
+        const locationData = shabbatData[index];
+        const offsetMap: { [key: string]: number } = {
+          'America/Puerto_Rico': -4,
+          'Europe/Lisbon': 1,
+          'Asia/Kolkata': 5.5,
+        };
+        const offset = offsetMap[locationData.timezone] || 0;
+        const localMinutes = parseSimpleTime(item.time);
+        const utcMinutes = localMinutes - (offset * 60);
+        return { ...item, utcMinutes, locationData };
       });
+      
+      const earliestStart = timesWithUTC.reduce((earliest, current) => 
+        current.utcMinutes < earliest.utcMinutes ? current : earliest
+      );
+      
+      const latestEnd = endTimesWithUTC.reduce((latest, current) => 
+        current.utcMinutes > latest.utcMinutes ? current : latest
+      );
       
       const response = {
         currentDate: new Date().toLocaleDateString('en-US', {

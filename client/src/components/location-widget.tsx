@@ -3,7 +3,7 @@ import { Plus, Trash2, Home, MapPin, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
-import { LocationAutocomplete } from "@/components/location-autocomplete";
+// No longer using LocationAutocomplete - using simple input with autoComplete="off"
 
 interface LocationWidgetProps {
   onSubmit: (data: { homeLocation: string; locations: string[] }) => void;

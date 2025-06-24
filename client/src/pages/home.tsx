@@ -1,10 +1,10 @@
 import { useState } from "react";
-import { LocationForm } from "@/components/location-form";
+import { LocationWidget } from "@/components/location-widget";
 import { ShabbatTimesDisplay } from "@/components/shabbat-times-display";
 import { SummaryCard } from "@/components/summary-card";
 import { useQuery } from "@tanstack/react-query";
 import { Star } from "lucide-react";
-import type { ShabbatResponse, LocationInput } from "@shared/schema";
+import type { ShabbatResponse } from "@shared/schema";
 
 export default function Home() {
   const [locationData, setLocationData] = useState<{ homeLocation: string; locations: string[] } | null>(null);
@@ -50,7 +50,7 @@ export default function Home() {
       </header>
 
       <main className="max-w-4xl mx-auto px-4 py-8">
-        <LocationForm onSubmit={handleFormSubmit} isLoading={isLoading} />
+        <LocationWidget onSubmit={handleFormSubmit} isLoading={isLoading} />
 
         {error && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-8">
