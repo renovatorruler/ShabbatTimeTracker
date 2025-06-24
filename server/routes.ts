@@ -133,18 +133,14 @@ async function fetchShabbatTimes(location: string): Promise<{
   } else {
     // Use mapping logic for location names
     const mapping = LOCATION_MAPPINGS[locationKey];
-    console.log(`Mapping for "${locationKey}":`, mapping);
-    
     if (mapping && mapping.zip) {
       url = `https://www.hebcal.com/shabbat?cfg=json&geo=zip&zip=${mapping.zip}&M=on&lg=s`;
     } else if (mapping && mapping.geonameid) {
       url = `https://www.hebcal.com/shabbat?cfg=json&geo=geoname&geonameid=${mapping.geonameid}&M=on&lg=s`;
-      console.log(`Using geonameid ${mapping.geonameid} for ${location}`);
     } else if (mapping && mapping.city && mapping.country) {
       url = `https://www.hebcal.com/shabbat?cfg=json&geo=pos&pos=${encodeURIComponent(mapping.city + ', ' + mapping.country)}&M=on&lg=s`;
     } else {
       url = `https://www.hebcal.com/shabbat?cfg=json&geo=pos&pos=${encodeURIComponent(location)}&M=on&lg=s`;
-      console.log(`No mapping found for "${locationKey}", using generic geocoding`);
     }
   }
   
@@ -176,12 +172,12 @@ async function fetchShabbatTimes(location: string): Promise<{
       throw new Error(`Incomplete Shabbat times for ${location}`);
     }
     
-    // Extract time from title (format: "Candle lighting: 6:45pm")
-    const startTimeMatch = candleLighting.title.match(/(\d{1,2}:\d{2}[ap]m)/i);
-    const endTimeMatch = havdalah.title.match(/(\d{1,2}:\d{2}[ap]m)/i);
+    // Extract time from title (format: "Candle lighting: 6:45pm" or "Candle lighting: 20:47")
+    const startTimeMatch = candleLighting.title.match(/(\d{1,2}:\d{2}(?:[ap]m)?)/i);
+    const endTimeMatch = havdalah.title.match(/(\d{1,2}:\d{2}(?:[ap]m)?)/i);
     
     if (!startTimeMatch || !endTimeMatch) {
-      throw new Error(`Could not parse times for ${location}`);
+      throw new Error(`Could not parse times for ${location}: start="${candleLighting.title}", end="${havdalah.title}"`);
     }
     
     const result = {
@@ -205,10 +201,20 @@ async function fetchShabbatTimes(location: string): Promise<{
 }
 
 function formatTime(timeStr: string): string {
-  // Convert from "6:45pm" to "6:45 PM"
-  return timeStr.replace(/([ap])m/i, (match, meridiem) => 
-    ` ${meridiem.toUpperCase()}M`
-  );
+  // Handle 24-hour format (20:47) or 12-hour format (6:45pm)
+  if (timeStr.includes('m')) {
+    // Convert from "6:45pm" to "6:45 PM"
+    return timeStr.replace(/([ap])m/i, (match, meridiem) => 
+      ` ${meridiem.toUpperCase()}M`
+    );
+  } else {
+    // Convert 24-hour format to 12-hour format
+    const [hours, minutes] = timeStr.split(':');
+    const hour24 = parseInt(hours);
+    const hour12 = hour24 === 0 ? 12 : hour24 > 12 ? hour24 - 12 : hour24;
+    const meridiem = hour24 >= 12 ? 'PM' : 'AM';
+    return `${hour12}:${minutes} ${meridiem}`;
+  }
 }
 
 function convertTimeToTimezone(timeStr: string, date: string, fromTz: string, toTz: string): string {

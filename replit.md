@@ -97,6 +97,9 @@ A web application that displays Shabbat start and end times across multiple loca
 - June 24, 2025: Implemented proper Hebcal API integration with zip code detection
 - June 24, 2025: Added timezone conversion logic for multi-location coordination
 - June 24, 2025: App now successfully displays different Shabbat times for different locations
+- June 24, 2025: Added support for international locations with proper geoname ID mapping
+- June 24, 2025: Fixed time parsing to handle both 12-hour (US) and 24-hour (international) formats
+- June 24, 2025: App fully supports both US zip codes and international city names
 
 ## User Preferences
 
