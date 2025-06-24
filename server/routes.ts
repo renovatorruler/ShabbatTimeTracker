@@ -265,34 +265,62 @@ function convertTimeToTimezone(timeStr: string, date: string, fromTz: string, to
     const dateTimeStr = `${date} ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:00`;
     const sourceTime = new Date(`${dateTimeStr} UTC`); // We'll adjust for timezone manually
     
-    // For now, do a simple offset calculation
-    // This is a simplified approach - in production you'd want to use a proper timezone library
+    // Enhanced timezone offset map with more locations
     const offsetMap: { [key: string]: number } = {
       'America/Puerto_Rico': -4, // AST
-      'America/New_York': -5, // EST (winter) / -4 (summer) 
-      'Europe/Lisbon': 0, // WET (winter) / +1 (summer)
-      'America/Chicago': -6,
-      'America/Los_Angeles': -8,
-      'Europe/London': 0,
+      'America/New_York': -4, // EDT (summer) 
+      'Europe/Lisbon': 1, // WEST (summer)
+      'Europe/London': 1, // BST (summer)
+      'Europe/Paris': 2, // CEST (summer)
+      'Europe/Madrid': 2, // CEST (summer)
+      'Europe/Rome': 2, // CEST (summer)
+      'Europe/Istanbul': 3, // TRT
+      'Asia/Kolkata': 5.5, // IST (India)
+      'Asia/Calcutta': 5.5, // IST (India)
+      'Australia/Sydney': 10, // AEST
+      'America/Toronto': -4, // EDT (summer)
+      'America/Chicago': -5, // CDT (summer)
+      'America/Los_Angeles': -7, // PDT (summer)
+      'Asia/Jerusalem': 3, // IDT (summer)
+      'Asia/Tel_Aviv': 3, // IDT (summer)
       'UTC': 0,
     };
     
-    const fromOffset = offsetMap[fromTz] || 0;
-    const toOffset = offsetMap[toTz] || 0;
+    const fromOffset = offsetMap[fromTz];
+    const toOffset = offsetMap[toTz];
+    
+    if (fromOffset === undefined || toOffset === undefined) {
+      console.log(`Missing timezone offset for ${fromTz} or ${toTz}`);
+      return `${timeStr} (timezone conversion unavailable)`;
+    }
+    
     const hoursDiff = toOffset - fromOffset;
     
     let convertedHours = hours + hoursDiff;
-    let dayName = '';
+    let convertedMinutes = minutes;
+    
+    // Handle fractional hours (like India's +5.5)
+    if (hoursDiff % 1 !== 0) {
+      const extraMinutes = (hoursDiff % 1) * 60;
+      convertedMinutes += extraMinutes;
+      if (convertedMinutes >= 60) {
+        convertedHours += 1;
+        convertedMinutes -= 60;
+      } else if (convertedMinutes < 0) {
+        convertedHours -= 1;
+        convertedMinutes += 60;
+      }
+    }
+    
+    let dayAdjustment = '';
     
     // Handle day overflow
     if (convertedHours >= 24) {
       convertedHours -= 24;
-      dayName = 'Saturday';
+      dayAdjustment = ' (+1 day)';
     } else if (convertedHours < 0) {
       convertedHours += 24;
-      dayName = 'Thursday';
-    } else {
-      dayName = 'Friday';
+      dayAdjustment = ' (-1 day)';
     }
     
     // Convert back to 12-hour format
@@ -308,16 +336,7 @@ function convertTimeToTimezone(timeStr: string, date: string, fromTz: string, to
       displayMeridiem = 'PM';
     }
     
-    const timeOnly = `${displayHours}:${minutes.toString().padStart(2, '0')} ${displayMeridiem}`;
-    
-    // Only add day if it's different from Friday (for start) or Saturday (for end)
-    if (timeStr.includes('PM') && dayName !== 'Friday') {
-      return `${timeOnly} ${dayName}`;
-    } else if (timeStr.includes('PM') && dayName === 'Saturday') {
-      return `${timeOnly} Saturday`;
-    }
-    
-    return timeOnly;
+    return `${displayHours}:${convertedMinutes.toString().padStart(2, '0')} ${displayMeridiem}${dayAdjustment}`;
   } catch (error) {
     console.error('Error converting timezone:', error);
     return timeStr;

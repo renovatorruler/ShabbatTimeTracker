@@ -105,6 +105,8 @@ A web application that displays Shabbat start and end times across multiple loca
 - June 24, 2025: Improved user experience with keyboard navigation and search suggestions
 - June 24, 2025: Disabled browser autocomplete to prevent interference with custom dropdown
 - June 24, 2025: Added Portuguese cities (Faro, Evora, Porto, Coimbra, Braga) and Puerto Rican cities (Guaynabo, Caguas, Bayamon, Ponce)
+- June 24, 2025: Added date display to "In Your Time Zone" section for clear coordination reference
+- June 24, 2025: Fixed timezone conversion logic to properly handle fractional offsets and international locations
 
 ## User Preferences
 
