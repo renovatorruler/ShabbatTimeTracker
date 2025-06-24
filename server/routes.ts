@@ -551,20 +551,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
 
       // Find earliest start in home timezone
-      const earliestStartInHome = allStartTimes.reduce((earliest, current, index) => {
-        const currentHomeTime = shabbatData[index].shabbatStartInHomeTime;
-        const earliestHomeTime = earliest.homeTime || earliest.time;
-        return parseTime(currentHomeTime) < parseTime(earliestHomeTime) ? 
-          { ...current, homeTime: currentHomeTime } : earliest;
-      });
+      let earliestStartInHome = { homeTime: shabbatData[0].shabbatStartInHomeTime, location: shabbatData[0].name };
+      for (let i = 1; i < shabbatData.length; i++) {
+        const currentHomeTime = shabbatData[i].shabbatStartInHomeTime;
+        if (parseTime(currentHomeTime) < parseTime(earliestStartInHome.homeTime)) {
+          earliestStartInHome = { homeTime: currentHomeTime, location: shabbatData[i].name };
+        }
+      }
       
-      // Find latest end in home timezone
-      const latestEndInHome = allEndTimes.reduce((latest, current, index) => {
-        const currentHomeTime = shabbatData[index].shabbatEndInHomeTime;
-        const latestHomeTime = latest.homeTime || latest.time;
-        return parseTime(currentHomeTime) > parseTime(latestHomeTime) ? 
-          { ...current, homeTime: currentHomeTime } : latest;
-      });
+      // Find latest end in home timezone  
+      let latestEndInHome = { homeTime: shabbatData[0].shabbatEndInHomeTime, location: shabbatData[0].name };
+      for (let i = 1; i < shabbatData.length; i++) {
+        const currentHomeTime = shabbatData[i].shabbatEndInHomeTime;
+        // Handle day rollover by parsing both time and checking if it contains "+1 day"
+        const currentMinutes = parseTime(currentHomeTime) + (currentHomeTime.includes('+1 day') ? 24 * 60 : 0);
+        const latestMinutes = parseTime(latestEndInHome.homeTime) + (latestEndInHome.homeTime.includes('+1 day') ? 24 * 60 : 0);
+        
+        if (currentMinutes > latestMinutes) {
+          latestEndInHome = { homeTime: currentHomeTime, location: shabbatData[i].name };
+        }
+      }
 
       // Get the current Shabbat date
       const shabbatDate = new Date(shabbatData[0].date);
