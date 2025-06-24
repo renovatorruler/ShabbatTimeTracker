@@ -46,8 +46,22 @@
     background: white !important;
     border: 1px solid #ddd !important;
     box-shadow: none !important;
-    margin-bottom: 0.5rem !important;
+    margin-bottom: 0.1rem !important;
     break-inside: avoid !important;
+    page-break-inside: avoid !important;
+    overflow: hidden !important;
+  }
+
+  /* First location (home) - normal size */
+  .space-y-6 > *:first-child {
+    transform: scale(1) !important;
+  }
+
+  /* Secondary locations - smaller size */
+  .space-y-6 > *:not(:first-child) {
+    transform: scale(0.85) !important;
+    transform-origin: top left !important;
+    margin-bottom: -0.5rem !important;
   }
 
   /* Location cards - compact layout */
@@ -62,8 +76,20 @@
 
   /* Force single page */
   .space-y-6 > * {
-    margin-bottom: 0.1rem !important;
+    margin-bottom: 0.05rem !important;
     margin-top: 0 !important;
+  }
+
+  /* Aggressive page break prevention */
+  * {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  /* Ensure entire page content fits */
+  html, body {
+    height: 10in !important;
+    overflow: hidden !important;
   }
 
   /* Grid layouts for print */
@@ -210,25 +236,47 @@
   }
 
   /* Print-specific layout adjustments */
-  @media print and (max-height: 11in) {
+  @media print {
     .space-y-6 > * + * {
-      margin-top: 0.05rem !important;
+      margin-top: 0.02rem !important;
     }
     
     .p-6 {
-      padding: 0.15rem !important;
+      padding: 0.1rem !important;
     }
     
+    /* Reduce all font sizes further */
     .text-2xl {
-      font-size: 13pt !important;
+      font-size: 11pt !important;
     }
 
     .text-xl {
-      font-size: 12pt !important;
+      font-size: 10pt !important;
     }
 
     .text-lg {
-      font-size: 11pt !important;
+      font-size: 9pt !important;
+    }
+
+    .text-sm {
+      font-size: 8pt !important;
+    }
+
+    .text-xs {
+      font-size: 7pt !important;
+    }
+
+    /* Secondary locations - even smaller text */
+    .space-y-6 > *:not(:first-child) .text-2xl {
+      font-size: 9pt !important;
+    }
+
+    .space-y-6 > *:not(:first-child) .text-xl {
+      font-size: 8pt !important;
+    }
+
+    .space-y-6 > *:not(:first-child) .text-lg {
+      font-size: 7pt !important;
     }
   }
 
@@ -253,7 +301,20 @@
 
   /* Reduce line height for more compact text */
   body {
-    line-height: 1.2 !important;
+    line-height: 1.1 !important;
+  }
+
+  /* Maximum content height enforcement */
+  main {
+    max-height: 9.5in !important;
+    overflow: hidden !important;
+  }
+
+  /* Force summary card to be more compact */
+  .summary-card {
+    transform: scale(0.9) !important;
+    transform-origin: top left !important;
+    margin-bottom: -1rem !important;
   }
 }
 
